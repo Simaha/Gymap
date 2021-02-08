@@ -3,6 +3,7 @@ package com.example.gymap;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -13,10 +14,13 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.example.gymap.data.GymContract;
+import com.example.gymap.data.GymContract.GymEntry;
 import com.example.gymap.data.GymDbHelper;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 public class CatalogActivity extends AppCompatActivity {
+
+    GymDbHelper mDbHelper = new GymDbHelper(this);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,7 +37,7 @@ public class CatalogActivity extends AppCompatActivity {
             }
         });
 
-        //displayDatabaseInfo();
+        displayDatabaseInfo();
     }
 
     /**
@@ -53,6 +57,21 @@ public class CatalogActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Helper method to insert hardcoded member data into the database. For debugging purposes only.
+     */
+    private void insertMember(){
+        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(GymEntry.COLUMN_NAME, "Ebrima Simaha");
+        values.put(GymEntry.COLUMN_AGE, 27);
+        values.put(GymEntry.COLUMN_GENDER, 1);
+        values.put(GymEntry.COLUMN_WEIGHT, 60);
+
+        long newRowId = db.insert(GymEntry.TABLE_NAME, null, values);
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu options from the res/menu/menu_catalog.xml file.
@@ -67,6 +86,8 @@ public class CatalogActivity extends AppCompatActivity {
         switch (item.getItemId()){
             // Respond to a click on the "Insert dummy data" menu option
             case R.id.action_insert_dummy_data:
+                insertMember();
+                displayDatabaseInfo();
                 return true;
             case R.id.action_delete_all_entries:
                 return true;
