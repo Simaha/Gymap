@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -20,7 +21,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 public class CatalogActivity extends AppCompatActivity {
 
-    GymDbHelper mDbHelper = new GymDbHelper(this);
+    private GymDbHelper mDbHelper = new GymDbHelper(this);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +71,8 @@ public class CatalogActivity extends AppCompatActivity {
         values.put(GymEntry.COLUMN_WEIGHT, 60);
 
         long newRowId = db.insert(GymEntry.TABLE_NAME, null, values);
+
+        Log.v("CatalogActivity", "New row ID " + newRowId);
     }
 
     @Override
