@@ -7,6 +7,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.Spinner;
 
 import androidx.annotation.NonNull;
@@ -20,7 +21,7 @@ import com.example.gymap.data.GymContract.GymEntry;
 import org.w3c.dom.Text;
 
 public class EditorActivity extends AppCompatActivity {
-
+    private EditText mNameEditText;
     private Spinner mGenderSpinner;
 
     private int mGender = GymEntry.GENDER_MALE;
@@ -30,6 +31,7 @@ public class EditorActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_editor);
 
+        mNameEditText = findViewById(R.id.edit_name);
         mGenderSpinner = findViewById(R.id.spinner_gender);
 
         setupSpinner();
@@ -66,6 +68,13 @@ public class EditorActivity extends AppCompatActivity {
                 mGender = GymEntry.GENDER_MALE;
             }
         });
+    }
+
+    /**
+     * Get user input from editor and save new pet into database.
+     */
+    private void insertMember(){
+
     }
 
     @Override
