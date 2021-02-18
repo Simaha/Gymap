@@ -18,7 +18,7 @@
     <string name="action_delete">Delete</string>
 
     <!-- Label for overview category of attributes in the editor [CHAR LIMIT=30] -->
-    <string name="category_overview">Overview</string>
+    <string name="category_overview">Personal Info</string>
 
     <!-- Label for gender information in the editor [CHAR LIMIT=30] -->
     <string name="category_gender">Gender</string>

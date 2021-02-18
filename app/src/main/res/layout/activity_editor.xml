@@ -36,7 +36,7 @@
             <EditText
                 android:id="@+id/edit_age"
                 android:hint="@string/hint_age"
-                android:inputType="textCapWords"
+                android:inputType="number"
                 style="@style/EditorFieldStyle" />
 
         </LinearLayout>
