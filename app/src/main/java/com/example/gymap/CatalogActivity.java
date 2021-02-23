@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.provider.BaseColumns;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -53,7 +54,23 @@ public class CatalogActivity extends AppCompatActivity {
         GymDbHelper mDbHelper = new GymDbHelper(this);
         SQLiteDatabase db = mDbHelper.getReadableDatabase();
 
-        Cursor cursor = db.rawQuery("SELECT * FROM " + GymContract.GymEntry.TABLE_NAME, null);
+        //Define projection to be used with the query method
+        String[] projection = {
+                BaseColumns._ID,
+                GymEntry.COLUMN_NAME,
+                GymEntry.COLUMN_AGE,
+                GymEntry.COLUMN_GENDER,
+                GymEntry.COLUMN_WEIGHT
+        };
+
+        Cursor cursor = db.query(
+                GymContract.GymEntry.TABLE_NAME,
+                projection,
+                null,
+                null,
+                null,
+                null,
+                null);
         try {
             TextView displayView = findViewById(R.id.text_view_gym);
             displayView.setText("Number of Rows in Gym database table: " + cursor.getCount());
