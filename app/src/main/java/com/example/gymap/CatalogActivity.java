@@ -71,9 +71,26 @@ public class CatalogActivity extends AppCompatActivity {
                 null,
                 null,
                 null);
+        TextView displayView = findViewById(R.id.text_view_gym);
+
         try {
-            TextView displayView = findViewById(R.id.text_view_gym);
-            displayView.setText("Number of Rows in Gym database table: " + cursor.getCount());
+            displayView.setText("Number of Rows in Gym database table: " + cursor.getCount() + "\n\n");
+            displayView.append(GymEntry._ID + " - " +
+                    GymEntry.COLUMN_NAME + "\n");
+
+            //Figure out the index of each column
+            int idColumnIndex = cursor.getColumnIndex(GymEntry._ID);
+            int nameColumnIndex = cursor.getColumnIndex(GymEntry.COLUMN_NAME);
+
+            //Iterate through all the returned rows in  the curosr
+            while (cursor.moveToNext()) {
+                //Use that index to extract the String or Int value of the word
+                // at the current word the cursor is on.
+                int currentID = cursor.getInt(idColumnIndex);
+                String currentName = cursor.getString(nameColumnIndex);
+                // Display the values from each column of the current row in the cursor in the TextView
+                displayView.append("\n" + currentID + " - " + currentName);
+            }
         } finally {
             cursor.close();
         }
