@@ -76,11 +76,17 @@ public class CatalogActivity extends AppCompatActivity {
         try {
             displayView.setText("Number of Rows in Gym database table: " + cursor.getCount() + "\n\n");
             displayView.append(GymEntry._ID + " - " +
-                    GymEntry.COLUMN_NAME + "\n");
+                    GymEntry.COLUMN_NAME + " - " +
+                    GymEntry.COLUMN_AGE + " - " +
+                    GymEntry.COLUMN_GENDER + " - " +
+                    GymEntry.COLUMN_WEIGHT + "\n");
 
             //Figure out the index of each column
             int idColumnIndex = cursor.getColumnIndex(GymEntry._ID);
             int nameColumnIndex = cursor.getColumnIndex(GymEntry.COLUMN_NAME);
+            int ageColumnIndex = cursor.getColumnIndex(GymEntry.COLUMN_AGE);
+            int genderColumnIndex = cursor.getColumnIndex(GymEntry.COLUMN_GENDER);
+            int weightColumnIndex = cursor.getColumnIndex(GymEntry.COLUMN_WEIGHT);
 
             //Iterate through all the returned rows in  the curosr
             while (cursor.moveToNext()) {
@@ -88,8 +94,15 @@ public class CatalogActivity extends AppCompatActivity {
                 // at the current word the cursor is on.
                 int currentID = cursor.getInt(idColumnIndex);
                 String currentName = cursor.getString(nameColumnIndex);
+                int currentAge = cursor.getInt(ageColumnIndex);
+                int currentGender = cursor.getInt(genderColumnIndex);
+                int currentWeight = cursor.getInt(weightColumnIndex);
                 // Display the values from each column of the current row in the cursor in the TextView
-                displayView.append("\n" + currentID + " - " + currentName);
+                displayView.append("\n" + currentID + " - " +
+                                currentName + " - " +
+                                currentAge + " - " +
+                                currentGender + " - " +
+                                currentWeight);
             }
         } finally {
             cursor.close();
@@ -103,10 +116,10 @@ public class CatalogActivity extends AppCompatActivity {
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
 
         ContentValues values = new ContentValues();
-        values.put(GymEntry.COLUMN_NAME, "Ebrima Simaha");
-        values.put(GymEntry.COLUMN_AGE, 27);
+        values.put(GymEntry.COLUMN_NAME, "Alhassan Simaha");
+        values.put(GymEntry.COLUMN_AGE, 22);
         values.put(GymEntry.COLUMN_GENDER, 1);
-        values.put(GymEntry.COLUMN_WEIGHT, 60);
+        values.put(GymEntry.COLUMN_WEIGHT, 40);
 
         long newRowId = db.insert(GymEntry.TABLE_NAME, null, values);
 
