@@ -3,6 +3,7 @@ package com.example.gymap.data;
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.UriMatcher;
 import android.database.Cursor;
 import android.net.Uri;
 
@@ -13,6 +14,30 @@ public class GymProvider extends ContentProvider {
 
     /** Tag for the log messages **/
     public static final String LOG_TAG = GymProvider.class.getSimpleName();
+
+    /** URI matcher code for the content URI for the members table */
+    private static final int MEMBERS = 100;
+
+    /** URI matcher code for the content URI for a single member in the members table */
+    private static final int MEMBER_ID = 101;
+
+    /**
+     * UriMatcher object to match a content URI to a corresponding code.
+     * The input passed into the constructor represents the code to return for the root URI.
+     * It's common to use NO_MATCH as the input for this case.
+     */
+    private static final UriMatcher sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
+
+    // Static initializer. This is run the first time anything is called from this class.
+    static {
+        // The calls to addURI() go here, for all of the content URI patterns that the provider
+        // should recognize. All paths added to the UriMatcher have a corresponding code to return
+        // when a match is found.
+
+        // TODO: Add 2 content URIs to URI matcher
+        sUriMatcher.addURI(GymContract.CONTENT_AUTHORITY, GymContract.GymEntry.TABLE_NAME, MEMBERS);
+        sUriMatcher.addURI(GymContract.CONTENT_AUTHORITY, GymContract.GymEntry.TABLE_NAME, MEMBER_ID);
+    }
 
     /**
      * Initialize the provider and the database helper object.
