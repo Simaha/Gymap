@@ -36,6 +36,7 @@ public final class GymContract {
         public static final String TABLE_NAME = "members";
 
         //Name of columns in Gymap database
+        public static final String _ID = BaseColumns._ID;
         public static final String COLUMN_NAME = "name";
         public static final String COLUMN_AGE = "age";
         public static final String COLUMN_GENDER = "gender";

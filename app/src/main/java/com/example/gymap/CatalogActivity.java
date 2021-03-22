@@ -51,8 +51,7 @@ public class CatalogActivity extends AppCompatActivity {
      * the pets database.
      */
     private void displayDatabaseInfo(){
-        GymDbHelper mDbHelper = new GymDbHelper(this);
-        SQLiteDatabase db = mDbHelper.getReadableDatabase();
+        //GymDbHelper mDbHelper = new GymDbHelper(this);
 
         //Define projection to be used with the query method
         String[] projection = {
@@ -63,6 +62,7 @@ public class CatalogActivity extends AppCompatActivity {
                 GymEntry.COLUMN_WEIGHT
         };
 
+        /**
         Cursor cursor = db.query(
                 GymContract.GymEntry.TABLE_NAME,
                 projection,
@@ -71,6 +71,11 @@ public class CatalogActivity extends AppCompatActivity {
                 null,
                 null,
                 null);
+        */
+
+        Cursor cursor = getContentResolver().query(GymEntry.CONTENT_URI, projection, null,
+                                                        null, null);
+
         TextView displayView = findViewById(R.id.text_view_gym);
 
         try {

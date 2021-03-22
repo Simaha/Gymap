@@ -1,11 +1,19 @@
 package com.example.gymap.data;
 
 import android.content.ContentProvider;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
+import android.provider.BaseColumns;
+import android.util.Log;
+
+import com.example.gymap.R;
+import com.example.gymap.data.GymContract.GymEntry;
+
 
 
 public class GymProvider extends ContentProvider {
@@ -35,8 +43,8 @@ public class GymProvider extends ContentProvider {
         // when a match is found.
 
         // TODO: Add 2 content URIs to URI matcher
-        sUriMatcher.addURI(GymContract.CONTENT_AUTHORITY, GymContract.GymEntry.TABLE_NAME, MEMBERS);
-        sUriMatcher.addURI(GymContract.CONTENT_AUTHORITY, GymContract.GymEntry.TABLE_NAME, MEMBER_ID);
+        sUriMatcher.addURI(GymContract.CONTENT_AUTHORITY, GymContract.PATH_GYMAP, MEMBERS);
+        sUriMatcher.addURI(GymContract.CONTENT_AUTHORITY, GymContract.PATH_GYMAP+"/#", MEMBER_ID);
     }
 
     /**
@@ -53,12 +61,66 @@ public class GymProvider extends ContentProvider {
 
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
-        return null;
+        SQLiteDatabase database = mDbHelper.getReadableDatabase();
+
+        Cursor cursor;
+
+        int match = sUriMatcher.match(uri);
+        switch (match) {
+            case MEMBERS:
+                projection = new String[]{
+                        BaseColumns._ID,
+                        GymEntry.COLUMN_NAME,
+                        GymEntry.COLUMN_AGE,
+                        GymEntry.COLUMN_GENDER,
+                        GymEntry.COLUMN_WEIGHT
+                };
+
+                cursor = database.query(GymContract.GymEntry.TABLE_NAME,
+                                        projection,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null);
+                break;
+            case MEMBER_ID:
+                selection = GymContract.GymEntry._ID + "=?";
+                selectionArgs = new String[] { String.valueOf(ContentUris.parseId(uri))};
+                cursor = database.query(GymEntry.TABLE_NAME, projection, selection, selectionArgs,
+                        null, null, sortOrder);
+                break;
+            default:
+                throw new IllegalArgumentException("Cannot query unknown URI " + uri);
+
+        }
+        return cursor;
     }
 
     @Override
     public Uri insert(Uri uri, ContentValues contentValues) {
-        return null;
+        final int match = sUriMatcher.match(uri);
+        switch (match) {
+            case MEMBERS:
+                return insertMember(uri, contentValues);
+            default:
+                throw new IllegalArgumentException("Insertion is not supported for " + uri);
+        }
+    }
+
+    private Uri insertMember(Uri uri, ContentValues values) {
+        // Get writeable database
+        SQLiteDatabase database = mDbHelper.getWritableDatabase();
+
+        // Insert the new member with the given values
+        long id = database.insert(GymEntry.TABLE_NAME, null, values);
+
+        // If the ID is -1, then the insertion failed. Log an error and return null
+        if(id == -1 ){
+            Log.e(LOG_TAG, "Failed to insert row for " + uri);
+            return null;
+        }
+        return ContentUris.withAppendedId( uri, id);
     }
 
     @Override
