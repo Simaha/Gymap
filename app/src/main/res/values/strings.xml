@@ -11,6 +11,12 @@
     <!-- Title for the activity to add a new member [CHAR LIMIT=20] -->
     <string name="editor_activity_title_new_pet">Add a Member</string>
 
+    <!-- Toast message in editor when new pet has been successfully inserted [CHAR LIMIT=NONE] -->
+    <string name="editor_insert_member_successful">New member saved</string>
+
+    <!-- Toast message in editor when new pet has failed to be inserted [CHAR LIMIT=NONE] -->
+    <string name="editor_insert_member_failed">Error with saving member</string>
+
     <!-- Label for editor menu option to save member and leave editor [CHAR LIMIT=20] -->
     <string name="action_save">Save</string>
 

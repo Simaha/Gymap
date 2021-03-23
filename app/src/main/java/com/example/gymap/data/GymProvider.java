@@ -109,6 +109,29 @@ public class GymProvider extends ContentProvider {
     }
 
     private Uri insertMember(Uri uri, ContentValues values) {
+        //Check that the name is not null
+        String name = values.getAsString(GymEntry.COLUMN_NAME);
+        if (name == null){
+            throw new IllegalArgumentException("Member requires a name");
+        }
+
+        Integer age = values.getAsInteger(GymEntry.COLUMN_AGE);
+        if (age == null && age < 15){
+            throw new IllegalArgumentException("Member needs to be atleast 16 years Old");
+        }
+
+        //Check that the gender is valid
+        Integer gender = values.getAsInteger(GymEntry.COLUMN_GENDER);
+        if (gender == null || !GymEntry.isValidGender(gender)) {
+            throw new IllegalArgumentException("Member requires valid gender");
+        }
+
+        // If the weight is provided, check that it's greater than or equal to 0 kg
+        Integer weight = values.getAsInteger(GymEntry.COLUMN_WEIGHT);
+        if (weight != null && weight < 0) {
+            throw new IllegalArgumentException("Member requires valid weight");
+        }
+
         // Get writeable database
         SQLiteDatabase database = mDbHelper.getWritableDatabase();
 

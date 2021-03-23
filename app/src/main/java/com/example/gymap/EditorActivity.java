@@ -2,6 +2,7 @@ package com.example.gymap;
 
 import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.Menu;
@@ -91,12 +92,6 @@ public class EditorActivity extends AppCompatActivity {
         int age = Integer.parseInt(ageString);
         int weight = Integer.parseInt(weightString);
 
-        //Create database helper
-        GymDbHelper mDbHelper = new GymDbHelper(this);
-
-        //Gets the database in writable mode
-        SQLiteDatabase db = mDbHelper.getWritableDatabase();
-
         // Create a ContentValues object where column names are the keys,
         // and member attributes from the editor are the values.
         ContentValues values = new ContentValues();
@@ -106,15 +101,15 @@ public class EditorActivity extends AppCompatActivity {
         values.put(GymEntry.COLUMN_WEIGHT, weight);
 
         // Insert a new row for pet in the database, returning the ID of that new row.
-        long newRowId = db.insert(GymEntry.TABLE_NAME, null, values);
+        Uri newUri = getContentResolver().insert(GymEntry.CONTENT_URI, values);
 
         // Show a toast message depending on whether or not the insertion was successful
-        if (newRowId == -1){
+        if (newUri == null){
             // If the row ID is -1, then there was an error with insertion.
-            Toast.makeText(this, "Error with saving New Member", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.editor_insert_member_failed), Toast.LENGTH_SHORT).show();
         }else {
             // Otherwise, the insertion was successful and we can display a toast with the row ID.
-            Toast.makeText(this, "New Member Saved with row id: " + newRowId, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.editor_insert_member_successful), Toast.LENGTH_SHORT).show();
         }
     }
 
