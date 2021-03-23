@@ -9,6 +9,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.provider.BaseColumns;
+import android.text.Selection;
 import android.util.Log;
 
 import com.example.gymap.R;
@@ -148,16 +149,94 @@ public class GymProvider extends ContentProvider {
 
     @Override
     public int update(Uri uri, ContentValues contentValues, String selection, String[] selectionArgs) {
-        return 0;
+        final int match = sUriMatcher.match(uri);
+        switch(match) {
+            case MEMBERS:
+                return updateMembers(uri, contentValues, selection, selectionArgs);
+            case MEMBER_ID:
+                selection = GymEntry._ID + "=?";
+                selectionArgs = new String[] { String.valueOf(ContentUris.parseId(uri)) };
+                return updateMembers(uri, contentValues, selection, selectionArgs);
+            default:
+                throw new IllegalArgumentException("Update is not supported for " + uri);
+        }
+    }
+
+    private int updateMembers(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+        // If the {@link PetEntry#COLUMN_PET_NAME} key is present,
+        // check that the name value is not null.
+        if (values.containsKey(GymEntry.COLUMN_NAME)){
+            String name = values.getAsString(GymEntry.COLUMN_NAME);
+            if(name == null){
+                throw new IllegalArgumentException("Pet requires a name");
+            }
+        }
+
+        // If the {@link PetEntry#COLUMN_PET_GENDER} key is present,
+        // check that the gender value is valid.
+        if (values.containsKey(GymEntry.COLUMN_AGE)){
+            Integer age = values.getAsInteger(GymEntry.COLUMN_AGE);
+            if (age == null && age < 15) {
+                throw new IllegalArgumentException("Member needs to be atleast 16 years Old");
+            }
+        }
+
+        // If the {@link PetEntry#COLUMN_PET_GENDER} key is present,
+        // check that the gender value is valid.
+        if (values.containsKey(GymEntry.COLUMN_GENDER)){
+            Integer gender = values.getAsInteger(GymEntry.COLUMN_GENDER);
+            if (gender == null || !GymEntry.isValidGender(gender)) {
+                throw new IllegalArgumentException("Member requires valid gender");
+            }
+        }
+
+        // If the {@link PetEntry#COLUMN_PET_WEIGHT} key is present,
+        // check that the weight value is valid.
+        if (values.containsKey(GymEntry.COLUMN_WEIGHT)){
+            Integer weight = values.getAsInteger(GymEntry.COLUMN_WEIGHT);
+            if (weight != null && weight < 0) {
+                throw new IllegalArgumentException("Member requires valid weight");
+            }
+        }
+
+        // If there are no values to update, then don't try to update the database
+        if (values.size() == 0){
+            return 0;
+        }
+
+        SQLiteDatabase database = mDbHelper.getWritableDatabase();
+
+        return  database.update(GymEntry.TABLE_NAME, values, selection, selectionArgs);
     }
 
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
-        return 0;
+        //Get writeable database
+        SQLiteDatabase database =mDbHelper.getWritableDatabase();
+
+        final int match = sUriMatcher.match(uri);
+        switch (match) {
+            case MEMBERS:
+                return database.delete(GymEntry.TABLE_NAME, selection, selectionArgs);
+            case MEMBER_ID:
+                selection = GymEntry._ID + "=?";
+                selectionArgs = new String[] { String.valueOf(ContentUris.parseId(uri))};
+                return database.delete(GymEntry.TABLE_NAME, selection, selectionArgs);
+            default:
+                throw new IllegalArgumentException("Deletion is not supported for " + uri);
+        }
     }
 
     @Override
     public String getType(Uri uri) {
-        return null;
+        final int match = sUriMatcher.match(uri);
+        switch (match) {
+            case MEMBERS:
+                return GymEntry.CONTENT_LIST_TYPE;
+            case MEMBER_ID:
+                return GymEntry.CONTENT_ITEM_TYPE;
+            default:
+                throw new IllegalStateException("Unknown URI " + uri + " with match " + match);
+        }
     }
 }
