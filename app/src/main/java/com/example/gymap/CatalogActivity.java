@@ -14,6 +14,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.example.gymap.data.GymContract;
@@ -70,42 +71,11 @@ public class CatalogActivity extends AppCompatActivity {
                 null,
                 null);
 
-        TextView displayView = findViewById(R.id.text_view_gym);
+        ListView gymListView = findViewById(R.id.list);
 
-        try {
-            displayView.setText("The Members table contains " + cursor.getCount() + " members."+ "\n\n");
-            displayView.append(GymEntry._ID + " - " +
-                    GymEntry.COLUMN_NAME + " - " +
-                    GymEntry.COLUMN_AGE + " - " +
-                    GymEntry.COLUMN_GENDER + " - " +
-                    GymEntry.COLUMN_WEIGHT + "\n");
+        GymCursorAdapter adapter = new GymCursorAdapter(this, cursor);
 
-            //Figure out the index of each column
-            int idColumnIndex = cursor.getColumnIndex(GymEntry._ID);
-            int nameColumnIndex = cursor.getColumnIndex(GymEntry.COLUMN_NAME);
-            int ageColumnIndex = cursor.getColumnIndex(GymEntry.COLUMN_AGE);
-            int genderColumnIndex = cursor.getColumnIndex(GymEntry.COLUMN_GENDER);
-            int weightColumnIndex = cursor.getColumnIndex(GymEntry.COLUMN_WEIGHT);
-
-            //Iterate through all the returned rows in  the curosr
-            while (cursor.moveToNext()) {
-                //Use that index to extract the String or Int value of the word
-                // at the current word the cursor is on.
-                int currentID = cursor.getInt(idColumnIndex);
-                String currentName = cursor.getString(nameColumnIndex);
-                int currentAge = cursor.getInt(ageColumnIndex);
-                int currentGender = cursor.getInt(genderColumnIndex);
-                int currentWeight = cursor.getInt(weightColumnIndex);
-                // Display the values from each column of the current row in the cursor in the TextView
-                displayView.append("\n" + currentID + " - " +
-                                currentName + " - " +
-                                currentAge + " - " +
-                                currentGender + " - " +
-                                currentWeight);
-            }
-        } finally {
-            cursor.close();
-        }
+        gymListView.setAdapter(adapter);
     }
 
     /**
