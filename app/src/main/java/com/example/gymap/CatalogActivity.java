@@ -1,7 +1,11 @@
 package com.example.gymap;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.loader.app.LoaderManager;
+import androidx.loader.content.CursorLoader;
+import androidx.loader.content.Loader;
 
 import android.content.ContentValues;
 import android.content.Intent;
@@ -22,7 +26,11 @@ import com.example.gymap.data.GymContract.GymEntry;
 import com.example.gymap.data.GymDbHelper;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
-public class CatalogActivity extends AppCompatActivity {
+public class CatalogActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>{
+
+    private static final int GYM_LOADER = 0;
+
+    GymCursorAdapter mCursorAdapter;
 
     private GymDbHelper mDbHelper = new GymDbHelper(this);
 
@@ -40,42 +48,17 @@ public class CatalogActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        displayDatabaseInfo();
-    }
-
-    /**
-     * Temporary helper method to display information in the onscreen TextView about the state of
-     * the pets database.
-     */
-    private void displayDatabaseInfo(){
-        //GymDbHelper mDbHelper = new GymDbHelper(this);
-
-        //Define projection to be used with the query method
-        String[] projection = {
-                BaseColumns._ID,
-                GymEntry.COLUMN_NAME,
-                GymEntry.COLUMN_AGE,
-                GymEntry.COLUMN_GENDER,
-                GymEntry.COLUMN_WEIGHT
-        };
-
-        Cursor cursor = getContentResolver().query(
-                GymEntry.CONTENT_URI,
-                projection,
-                null,
-                null,
-                null);
 
         ListView gymListView = findViewById(R.id.list);
 
-        GymCursorAdapter adapter = new GymCursorAdapter(this, cursor);
+        View emptyView = findViewById(R.id.empty_view);
+        gymListView.setEmptyView(emptyView);
 
-        gymListView.setAdapter(adapter);
+        mCursorAdapter = new GymCursorAdapter(this, null);
+        gymListView.setAdapter(mCursorAdapter);
+
+        //Kick off the loader
+        getSupportLoaderManager().initLoader(GYM_LOADER, null, this);
     }
 
     /**
@@ -86,9 +69,9 @@ public class CatalogActivity extends AppCompatActivity {
         // and Toto's pet attributes are the values.
         ContentValues values = new ContentValues();
         values.put(GymEntry.COLUMN_NAME, "Alhassan Simaha");
-        values.put(GymEntry.COLUMN_AGE, 22);
+        values.put(GymEntry.COLUMN_AGE,32);
         values.put(GymEntry.COLUMN_GENDER, GymEntry.GENDER_MALE);
-        values.put(GymEntry.COLUMN_WEIGHT, 40);
+        values.put(GymEntry.COLUMN_WEIGHT, 30);
 
         Uri newUri = getContentResolver().insert(GymEntry.CONTENT_URI, values);
 
@@ -109,11 +92,37 @@ public class CatalogActivity extends AppCompatActivity {
             // Respond to a click on the "Insert dummy data" menu option
             case R.id.action_insert_dummy_data:
                 insertMember();
-                displayDatabaseInfo();
                 return true;
             case R.id.action_delete_all_entries:
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        //Define a projection that speifies the colums from the table we care about.
+        String[] projection = {
+            GymEntry._ID,
+            GymEntry.COLUMN_NAME,
+            GymEntry.COLUMN_WEIGHT };
+
+        //This loader will execute the ContentProvider's query method on a background thread
+        return new CursorLoader(this,
+                GymEntry.CONTENT_URI,
+                projection,
+                null,
+                null,
+                null);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        mCursorAdapter.swapCursor(data);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        mCursorAdapter.swapCursor(null);
     }
 }

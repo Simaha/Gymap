@@ -95,6 +95,11 @@ public class GymProvider extends ContentProvider {
                 throw new IllegalArgumentException("Cannot query unknown URI " + uri);
 
         }
+        //Set notification URI on the cursor
+        //so we know what content URI the content was created for
+        //If the data at this URI changes, then we know we need to update the cursor.
+        cursor.setNotificationUri(getContext().getContentResolver(), uri);
+
         return cursor;
     }
 
@@ -144,6 +149,11 @@ public class GymProvider extends ContentProvider {
             Log.e(LOG_TAG, "Failed to insert row for " + uri);
             return null;
         }
+
+        //Notif all listeners that eh data  has changed for the member content URI
+        getContext().getContentResolver().notifyChange(uri, null);
+
+        //return the new URI with the ID of the newly inserted roa appended at the time
         return ContentUris.withAppendedId( uri, id);
     }
 
@@ -206,7 +216,18 @@ public class GymProvider extends ContentProvider {
 
         SQLiteDatabase database = mDbHelper.getWritableDatabase();
 
-        return  database.update(GymEntry.TABLE_NAME, values, selection, selectionArgs);
+        // Perform the update on the database and get the number of rows affected
+        int rowsUpdated = database.update(GymEntry.TABLE_NAME, values, selection, selectionArgs);
+
+        // If 1 or more rows were updated, then notify all listeners that the data at the
+        // given URI has changed
+        if (rowsUpdated != 0) {
+            getContext().getContentResolver().notifyChange(uri, null);
+        }
+
+        // Return the number of rows updated
+        return rowsUpdated;
+
     }
 
     @Override
@@ -214,17 +235,33 @@ public class GymProvider extends ContentProvider {
         //Get writeable database
         SQLiteDatabase database =mDbHelper.getWritableDatabase();
 
+        //Track the number of rows that were deleted
+        int rowsDeleted;
+
         final int match = sUriMatcher.match(uri);
         switch (match) {
             case MEMBERS:
-                return database.delete(GymEntry.TABLE_NAME, selection, selectionArgs);
+                rowsDeleted = database.delete(GymEntry.TABLE_NAME, selection, selectionArgs);
+                break;
             case MEMBER_ID:
                 selection = GymEntry._ID + "=?";
                 selectionArgs = new String[] { String.valueOf(ContentUris.parseId(uri))};
-                return database.delete(GymEntry.TABLE_NAME, selection, selectionArgs);
+                rowsDeleted = database.delete(GymEntry.TABLE_NAME, selection, selectionArgs);
+                break;
             default:
                 throw new IllegalArgumentException("Deletion is not supported for " + uri);
+
+
         }
+
+        // If 1 or more rows were deleted, then notify all listeners that the data at the
+        // given URI has changed
+        if (rowsDeleted != 0) {
+            getContext().getContentResolver().notifyChange(uri, null);
+        }
+
+        // Return the number of rows deleted
+        return rowsDeleted;
     }
 
     @Override
