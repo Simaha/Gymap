@@ -7,6 +7,7 @@ import androidx.loader.app.LoaderManager;
 import androidx.loader.content.CursorLoader;
 import androidx.loader.content.Loader;
 
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
@@ -18,6 +19,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -56,6 +58,20 @@ public class CatalogActivity extends AppCompatActivity implements LoaderManager.
 
         mCursorAdapter = new GymCursorAdapter(this, null);
         gymListView.setAdapter(mCursorAdapter);
+
+        gymListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+                Intent intent = new Intent(CatalogActivity.this, EditorActivity.class);
+
+                Uri currentMemberUri = ContentUris.withAppendedId(GymEntry.CONTENT_URI, id);
+
+                intent.setData(currentMemberUri);
+
+                startActivity(intent);
+            }
+
+        });
 
         //Kick off the loader
         getSupportLoaderManager().initLoader(GYM_LOADER, null, this);
@@ -101,7 +117,7 @@ public class CatalogActivity extends AppCompatActivity implements LoaderManager.
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        //Define a projection that speifies the colums from the table we care about.
+        //Define a projection that speifies the columns from the table we care about.
         String[] projection = {
             GymEntry._ID,
             GymEntry.COLUMN_NAME,

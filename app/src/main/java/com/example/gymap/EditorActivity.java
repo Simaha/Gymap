@@ -1,6 +1,8 @@
 package com.example.gymap;
 
 import android.content.ContentValues;
+import android.content.Intent;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
@@ -18,6 +20,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NavUtils;
+import androidx.loader.app.LoaderManager;
+import androidx.loader.content.CursorLoader;
+import androidx.loader.content.Loader;
 
 import com.example.gymap.data.GymContract;
 import com.example.gymap.data.GymContract.GymEntry;
@@ -25,26 +30,45 @@ import com.example.gymap.data.GymDbHelper;
 
 import org.w3c.dom.Text;
 
-public class EditorActivity extends AppCompatActivity {
+public class EditorActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
+
+    private static final int MEMBER_LOADER = 0;
+
+    private Uri mCurrentMemberUri;
+
+    private int mGender = GymEntry.GENDER_MALE;
+
     private EditText mNameEditText;
     private EditText mAgeEditText;
     private Spinner mGenderSpinner;
     private EditText mWeightEditText;
-
-
-    private int mGender = GymEntry.GENDER_MALE;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_editor);
 
-        mNameEditText = findViewById(R.id.edit_name);
+        //Examine the intent that was used to launch this activity
+        Intent intent = getIntent();
+        mCurrentMemberUri = intent.getData();
+
+        //If the intent does not contain a member content uri, then we know that we are
+        ///creating a neew member.
+        if (mCurrentMemberUri == null) {
+            //This is a new member, so change the app to say "Add a Member"
+            setTitle("Add a Member");
+        } else {
+            setTitle(getString(R.string.editor_activity_title_edit_member));
+        }
+
+            mNameEditText = findViewById(R.id.edit_name);
         mAgeEditText = findViewById(R.id.edit_age);
         mGenderSpinner = findViewById(R.id.spinner_gender);
         mWeightEditText = findViewById(R.id.edit_weight);
 
         setupSpinner();
+
+        getSupportLoaderManager().initLoader(MEMBER_LOADER, null, this);
     }
 
     private void setupSpinner() {
@@ -137,5 +161,64 @@ public class EditorActivity extends AppCompatActivity {
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle bundle) {
+        // Since the editor shows all members attributes, define a projection that contains
+        // all columns from the gym table
+        String[] projection = {
+                GymEntry._ID,
+                GymEntry.COLUMN_NAME,
+                GymEntry.COLUMN_AGE,
+                GymEntry.COLUMN_GENDER,
+                GymEntry.COLUMN_WEIGHT
+        };
+
+        // This loader will execute the ContentProvider's query method on a background thread
+        return new CursorLoader(this,
+                mCurrentMemberUri,
+                projection,
+                null,
+                null,
+                null);
+    }
+
+    @Override
+    public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor cursor) {
+        // Proceed with moving to the first row of the cursor and reading data from it
+        // (This should be the only row in the cursor)
+        if (cursor.moveToFirst()){
+            int nameColumnIndex = cursor.getColumnIndex(GymEntry.COLUMN_NAME);
+            int ageColumnIndex = cursor.getColumnIndex(GymEntry.COLUMN_AGE);
+            int genderColumnIndex = cursor.getColumnIndex(GymEntry.COLUMN_GENDER);
+            int weightColumnIndex = cursor.getColumnIndex(GymEntry.COLUMN_WEIGHT);
+
+            //Extract the values from the cursor for the given column index
+            String name = cursor.getString(nameColumnIndex);
+            int age = cursor.getInt(ageColumnIndex);
+            int gender = cursor.getInt(genderColumnIndex);
+            int weight = cursor.getInt(weightColumnIndex);
+
+            //Update the views on the screen with the values from the database
+            mNameEditText.setText(name);
+            mAgeEditText.setText(Integer.toString(age));
+            mWeightEditText.setText(Integer.toString(weight));
+
+            // Gender is a dropdown spinner, so map the constant value from the database
+            switch(gender) {
+                case GymEntry.GENDER_MALE:
+                    mGenderSpinner.setSelection(1);
+                    break;
+                    case GymEntry.GENDER_FEMALE:
+                        mGenderSpinner.setSelection(2);
+                        break;
+            }
+        }
+    }
+
+    @Override
+    public void onLoaderReset(@NonNull Loader<Cursor> loader) {
+
     }
 }

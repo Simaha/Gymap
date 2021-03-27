@@ -17,7 +17,6 @@
             </intent-filter>
         </activity>
         <activity android:name=".EditorActivity"
-            android:label="Edit a Member"
             android:theme="@style/EditorTheme"
             android:parentActivityName=".CatalogActivity">
             <!-- Parent activity meta-data to support 4.0 and lower -->
