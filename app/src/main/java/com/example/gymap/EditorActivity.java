@@ -3,7 +3,6 @@ package com.example.gymap;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -24,11 +23,7 @@ import androidx.loader.app.LoaderManager;
 import androidx.loader.content.CursorLoader;
 import androidx.loader.content.Loader;
 
-import com.example.gymap.data.GymContract;
 import com.example.gymap.data.GymContract.GymEntry;
-import com.example.gymap.data.GymDbHelper;
-
-import org.w3c.dom.Text;
 
 public class EditorActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -53,28 +48,28 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         mCurrentMemberUri = intent.getData();
 
         //If the intent does not contain a member content uri, then we know that we are
-        ///creating a neew member.
+        ///creating a new member.
         if (mCurrentMemberUri == null) {
             //This is a new member, so change the app to say "Add a Member"
             setTitle("Add a Member");
         } else {
             setTitle(getString(R.string.editor_activity_title_edit_member));
+
+            getSupportLoaderManager().initLoader(MEMBER_LOADER, null, this);
         }
 
-            mNameEditText = findViewById(R.id.edit_name);
+        mNameEditText = findViewById(R.id.edit_name);
         mAgeEditText = findViewById(R.id.edit_age);
         mGenderSpinner = findViewById(R.id.spinner_gender);
         mWeightEditText = findViewById(R.id.edit_weight);
 
         setupSpinner();
-
-        getSupportLoaderManager().initLoader(MEMBER_LOADER, null, this);
     }
 
     private void setupSpinner() {
         // Create adapter for spinner. The list options are from the String array it will use
         // the spinner will use the default layout
-        ArrayAdapter genderSpinnerAdapter = ArrayAdapter.createFromResource(this,
+        ArrayAdapter<CharSequence> genderSpinnerAdapter = ArrayAdapter.createFromResource(this,
                 R.array.array_gender_options, android.R.layout.simple_spinner_item);
 
         // Specify dropdown layout style - simple list view with 1 item per line
@@ -107,14 +102,24 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
     /**
      * Get user input from editor and save new pet into database.
      */
-    private void insertMember(){
+    private void saveMember(){
         // Read from input fields
         // Use trim to eliminate leading or trailing white space
         String nameString = mNameEditText.getText().toString().trim();
         String ageString = mAgeEditText.getText().toString().trim();
         String weightString = mWeightEditText.getText().toString().trim();
         int age = Integer.parseInt(ageString);
-        int weight = Integer.parseInt(weightString);
+        int weight = 0;
+        if(!TextUtils.isEmpty(weightString)) {
+            Integer.parseInt(weightString);}
+
+        // Check if this is supposed to be a new pet
+        // and check if all the fields in the editor are blank
+        if (mCurrentMemberUri == null &&
+                TextUtils.isEmpty(nameString) && TextUtils.isEmpty(ageString) &&
+                TextUtils.isEmpty(weightString)) {
+            return;
+        }
 
         // Create a ContentValues object where column names are the keys,
         // and member attributes from the editor are the values.
@@ -124,16 +129,27 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         values.put(GymEntry.COLUMN_GENDER, mGender);
         values.put(GymEntry.COLUMN_WEIGHT, weight);
 
-        // Insert a new row for pet in the database, returning the ID of that new row.
-        Uri newUri = getContentResolver().insert(GymEntry.CONTENT_URI, values);
+        if (mCurrentMemberUri == null) {
+            // Insert a new row for pet in the database, returning the ID of that new row.
+            Uri newUri = getContentResolver().insert(GymEntry.CONTENT_URI, values);
 
-        // Show a toast message depending on whether or not the insertion was successful
-        if (newUri == null){
-            // If the row ID is -1, then there was an error with insertion.
-            Toast.makeText(this, getString(R.string.editor_insert_member_failed), Toast.LENGTH_SHORT).show();
+            // Show a toast message depending on whether or not the insertion was successful
+            if (newUri == null){
+                // If the row ID is -1, then there was an error with insertion.
+                Toast.makeText(this, getString(R.string.editor_insert_member_failed), Toast.LENGTH_SHORT).show();
+            }else {
+                // Otherwise, the insertion was successful and we can display a toast with the row ID.
+                Toast.makeText(this, getString(R.string.editor_insert_member_successful), Toast.LENGTH_SHORT).show();
+            }
         }else {
-            // Otherwise, the insertion was successful and we can display a toast with the row ID.
-            Toast.makeText(this, getString(R.string.editor_insert_member_successful), Toast.LENGTH_SHORT).show();
+            int rowsAffected = getContentResolver().update(mCurrentMemberUri, values, null, null);
+
+            // Show a toast message depending on whether or not the update was successful.
+            if (rowsAffected == 0){
+                Toast.makeText(this, getString(R.string.editor_update_member_failed), Toast.LENGTH_SHORT).show();
+            }else {
+                Toast.makeText(this, getString(R.string.editor_update_member_successful), Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
@@ -149,7 +165,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         switch (item.getItemId()){
             case R.id.action_save:
                 //Save a new member to database
-                insertMember();
+                saveMember();
                 //Exit Activity
                 finish();
                 return true;
